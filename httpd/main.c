@@ -62,6 +62,8 @@ int main()
 
     espFsInit((void*)(webpages_espfs_start));
     int listenPort = 9000;
+    printf("creating httpd on port %d\n", listenPort);
+
     httpdInit(builtInUrls, listenPort, HTTPD_FLAG_SSL);
 
     printf("creating websocket broadcast thread\n");
