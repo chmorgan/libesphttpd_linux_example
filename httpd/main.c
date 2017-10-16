@@ -47,6 +47,27 @@ void myEchoWebsocketConnect(Websock *ws) {
     ws->recvCb = myEchoWebsocketRecv;
 }
 
+CgiStatus ICACHE_FLASH_ATTR cgiUploadTest(HttpdConnData *connData) {
+
+    printf("connData->post->len %d\n", connData->post->len);
+    printf("connData->post->received %d\n", connData->post->received);
+
+    if(connData->post->len == connData->post->received)
+    {
+        httpd_printf("Upload done. Sending response.\n");
+        httpdStartResponse(connData, 200);
+        httpdHeader(connData, "Content-Type", "text/plain");
+        httpdEndHeaders(connData);
+        httpdSend(connData, "Data received", -1);
+        httpdSend(connData, "\n", -1);
+
+        return HTTPD_CGI_DONE;
+    } else
+    {
+        return HTTPD_CGI_MORE;
+    }
+}
+
 int main()
 {
     HttpdBuiltInUrl builtInUrls[]={
@@ -55,6 +76,8 @@ int main()
         {"/websocket", cgiRedirect, "/websocket/index.html"},
         {"/websocket/ws.cgi", cgiWebsocket, myWebsocketConnect},
         {"/websocket/echo.cgi", cgiWebsocket, myEchoWebsocketConnect},
+
+        {"/upload", cgiUploadTest, NULL},
 
         {"*", cgiEspFsHook, NULL},
         {NULL, NULL, NULL}
