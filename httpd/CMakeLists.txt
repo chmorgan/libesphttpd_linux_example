@@ -47,6 +47,8 @@ set_target_properties(libwebpages
 
 add_executable(httpd main.c ${certificateResources})
 
+target_compile_definitions(httpd PUBLIC "CONFIG_ESPHTTPD_MAX_CONNECTIONS=100")
+
 target_link_libraries(httpd libwebpages)
 
 
