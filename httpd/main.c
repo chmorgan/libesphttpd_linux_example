@@ -7,6 +7,7 @@
 #include <libesphttpd/espfs.h>
 #include <libesphttpd/webpages-espfs.h>
 #include <libesphttpd/httpd-freertos.h>
+#include <libesphttpd/cgiredirect.h>
 
 HttpdFreertosInstance httpdFreertosInstance;
 
@@ -52,12 +53,12 @@ void myEchoWebsocketConnect(Websock *ws) {
 
 CgiStatus ICACHE_FLASH_ATTR cgiUploadTest(HttpdConnData *connData) {
 
-    printf("connData->post->len %d\n", connData->post->len);
-    printf("connData->post->received %d\n", connData->post->received);
+    printf("connData->post->len %d\n", connData->post.len);
+    printf("connData->post->received %d\n", connData->post.received);
 
-    if(connData->post->len == connData->post->received)
+    if(connData->post.len == connData->post.received)
     {
-        httpd_printf("Upload done. Sending response.\n");
+        printf("Upload done. Sending response.\n");
         httpdStartResponse(connData, 200);
         httpdHeader(connData, "Content-Type", "text/plain");
         httpdEndHeaders(connData);
