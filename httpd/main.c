@@ -8,6 +8,7 @@
 #include <libesphttpd/webpages-espfs.h>
 #include <libesphttpd/httpd-freertos.h>
 #include <libesphttpd/cgiredirect.h>
+#include <libesphttpd/route.h>
 
 HttpdFreertosInstance httpdFreertosInstance;
 
@@ -75,16 +76,16 @@ CgiStatus ICACHE_FLASH_ATTR cgiUploadTest(HttpdConnData *connData) {
 int main()
 {
     HttpdBuiltInUrl builtInUrls[]={
-        {"/", cgiRedirect, "/index.html"},
+        ROUTE_REDIRECT("/", "/index.html"),
 
-        {"/websocket", cgiRedirect, "/websocket/index.html"},
-        {"/websocket/ws.cgi", cgiWebsocket, myWebsocketConnect},
-        {"/websocket/echo.cgi", cgiWebsocket, myEchoWebsocketConnect},
+        ROUTE_REDIRECT("/websocket", "/websocket/index.html"),
+        ROUTE_CGI_ARG("/websocket/ws.cgi", cgiWebsocket, myWebsocketConnect),
+        ROUTE_CGI_ARG("/websocket/echo.cgi", cgiWebsocket, myEchoWebsocketConnect),
 
-        {"/upload", cgiUploadTest, NULL},
+        ROUTE_CGI("/upload", cgiUploadTest),
 
-        {"*", cgiEspFsHook, NULL},
-        {NULL, NULL, NULL}
+        ROUTE_FILESYSTEM(),
+        ROUTE_END()
     };
 
     espFsInit((void*)(webpages_espfs_start));
