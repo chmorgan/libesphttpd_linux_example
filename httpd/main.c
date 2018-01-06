@@ -91,7 +91,14 @@ int main()
     int listenPort = 9000;
     printf("creating httpd on port %d\n", listenPort);
 
-    httpdFreertosInit(&httpdFreertosInstance, builtInUrls, listenPort, HTTPD_FLAG_SSL);
+    int maxConnections = 32;
+    char connectionMemory[sizeof(RtosConnType) * maxConnections];
+
+    httpdFreertosInit(&httpdFreertosInstance,
+                        builtInUrls,
+                        listenPort,
+                        connectionMemory, maxConnections,
+                        HTTPD_FLAG_SSL);
 
     printf("creating websocket broadcast thread\n");
     pthread_t websocketThread;
