@@ -73,6 +73,15 @@ CgiStatus ICACHE_FLASH_ATTR cgiUploadTest(HttpdConnData *connData) {
     }
 }
 
+CgiStatus ICACHE_FLASH_ATTR cgiTest(HttpdConnData *connData)
+{
+    httpdStartResponse(connData, 200);
+    httpdEndHeaders(connData);
+    httpdSend(connData, "some test response", -1);
+
+    return HTTPD_CGI_DONE;
+}
+
 int main()
 {
     HttpdBuiltInUrl builtInUrls[]={
@@ -81,6 +90,8 @@ int main()
         ROUTE_REDIRECT("/websocket", "/websocket/index.html"),
         ROUTE_CGI_ARG("/websocket/ws.cgi", cgiWebsocket, myWebsocketConnect),
         ROUTE_CGI_ARG("/websocket/echo.cgi", cgiWebsocket, myEchoWebsocketConnect),
+
+        ROUTE_CGI("/test", cgiTest),
 
         ROUTE_CGI("/upload", cgiUploadTest),
 
