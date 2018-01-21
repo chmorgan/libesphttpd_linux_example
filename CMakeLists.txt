@@ -42,3 +42,8 @@ add_test(NAME test_post
 	COMMAND ${DEFAULT_INSTALL_DIR}/bin/test_post.sh
 	WORKING_DIRECTORY ${DEFAULT_INSTALL_DIR}/bin
 )
+
+add_test(NAME test_too_long_url
+	COMMAND ${DEFAULT_INSTALL_DIR}/bin/test_too_long_url.sh
+	WORKING_DIRECTORY ${DEFAULT_INSTALL_DIR}/bin
+)
