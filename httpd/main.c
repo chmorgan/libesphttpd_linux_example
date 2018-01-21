@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <pthread.h>
 #include <libesphttpd/linux.h>
 #include <libesphttpd/httpdespfs.h>
@@ -82,7 +83,61 @@ CgiStatus ICACHE_FLASH_ATTR cgiTest(HttpdConnData *connData)
     return HTTPD_CGI_DONE;
 }
 
-int main()
+void printUsage(char* appName)
+{
+    printf("%s() usage:\n", appName);
+    printf("\t--help, -h\n");
+    printf("\t--ssl, -s\n");
+}
+
+static int print_usage_flag;
+static int ssl_flag;
+
+/** @return true if successful, false otherwise */
+bool parseInput(int argc, char **argv)
+{
+    static struct option long_options[] =
+    {
+        {"help", no_argument, &print_usage_flag, 'h'},
+        {"ssl", no_argument, &ssl_flag, 's'},
+        {0, 0, 0, 0}
+    };
+
+    while(1)
+    {
+        int option_index = 0;
+
+        char c = getopt_long(argc, argv, "sh", long_options, &option_index);
+
+        if(c == -1)
+        {
+            break;
+        }
+
+        switch(c)
+        {
+        case 0:
+            // if this option set a flag nothing else to do
+            if(long_options[option_index].flag != 0)
+            {
+                break;
+            }
+            break;
+        case 's':
+            ssl_flag = 1;
+            break;
+        case 'h':
+            print_usage_flag = 1;
+            break;
+        default:
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int main(int argc, char** argv)
 {
     HttpdBuiltInUrl builtInUrls[]={
         ROUTE_REDIRECT("/", "/index.html"),
@@ -99,6 +154,18 @@ int main()
         ROUTE_END()
     };
 
+    if(!parseInput(argc, argv))
+    {
+        printf("Error parsing input arguments\n");
+        return 1;
+    }
+
+    if(print_usage_flag)
+    {
+        printUsage(argv[0]);
+        return 0;
+    }
+
     espFsInit((void*)(webpages_espfs_start));
     int listenPort = 9000;
     printf("creating httpd on port %d\n", listenPort);
@@ -106,11 +173,21 @@ int main()
     int maxConnections = 32;
     char connectionMemory[sizeof(RtosConnType) * maxConnections];
 
+    HttpdFlags flags;
+
+    if(ssl_flag)
+    {
+        flags = HTTPD_FLAG_SSL;
+    } else
+    {
+        flags = HTTPD_FLAG_NONE;
+    }
+
     httpdFreertosInit(&httpdFreertosInstance,
                         builtInUrls,
                         listenPort,
                         connectionMemory, maxConnections,
-                        HTTPD_FLAG_SSL);
+                        flags);
 
     printf("creating websocket broadcast thread\n");
     pthread_t websocketThread;
