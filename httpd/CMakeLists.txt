@@ -45,28 +45,12 @@ set_target_properties(libwebpages
     IMPORTED_LOCATION libwebpages-espfs.a
 )
 
-add_executable(httpd main.c ${certificateResources})
-
-target_compile_definitions(httpd PUBLIC "CONFIG_ESPHTTPD_SHUTDOWN_SUPPORT")
-target_compile_definitions(httpd PUBLIC "CONFIG_ESPHTTPD_SSL_SUPPORT")
-
-target_link_libraries(httpd libwebpages)
-
-
-find_library(ESPHTTPD_LIBRARY NAMES esphttpd)
-message("Found library ${ESPHTTPD_LIBRARY}")
-target_link_libraries(httpd ${ESPHTTPD_LIBRARY})
-
 find_package(OpenSSL REQUIRED)
 if( OpenSSL_FOUND )
     include_directories(${OPENSSL_INCLUDE_DIRS})
     link_directories(${OPENSSL_LIBRARIES})
     message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 endif()
-target_link_libraries(httpd ${OPENSSL_LIBRARIES})
-
-find_package(Threads)
-target_link_libraries(httpd ${CMAKE_THREAD_LIBS_INIT})
 
 find_library(RT_LIBRARY rt)
 if(!RT_LIBRARY_FOUND)
@@ -74,8 +58,31 @@ if(!RT_LIBRARY_FOUND)
 else()
     message(STATUS "rt found ${RT_LIBRARY}")
 endif()
-target_link_libraries(httpd ${RT_LIBRARY})
 
-target_include_directories(httpd PUBLIC ${CMAKE_INSTALL_PREFIX}/include)
+find_package(Threads)
 
-install(TARGETS httpd DESTINATION bin)
+find_library(ESPHTTPD_LIBRARY NAMES esphttpd)
+message("Found library ${ESPHTTPD_LIBRARY}")
+
+function(configure_target target_name)
+    add_executable(${target_name} main.c ${certificateResources})
+
+    target_compile_definitions(${target_name} PUBLIC "CONFIG_ESPHTTPD_SHUTDOWN_SUPPORT")
+    target_compile_definitions(${target_name} PUBLIC "CONFIG_ESPHTTPD_SSL_SUPPORT")
+
+    target_link_libraries(${target_name} libwebpages)
+
+    target_link_libraries(${target_name} ${ESPHTTPD_LIBRARY})
+
+    target_link_libraries(${target_name} ${OPENSSL_LIBRARIES})
+
+    target_link_libraries(${target_name} ${CMAKE_THREAD_LIBS_INIT})
+
+    target_link_libraries(${target_name} ${RT_LIBRARY})
+
+    target_include_directories(${target_name} PUBLIC ${CMAKE_INSTALL_PREFIX}/include)
+
+    install(TARGETS ${target_name} DESTINATION bin)
+endfunction(configure_target)
+
+configure_target(httpd)
