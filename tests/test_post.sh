@@ -1,6 +1,6 @@
 # test that we can perform a post of data to a cgi handler
 
-./httpd&
+./httpd --ssl&
 httpd_pid=$!
 
 # generate some random data to upload
